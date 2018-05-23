@@ -111,7 +111,7 @@ def scatter(
     sanitize_anndata(adata)
     if legend_loc not in VALID_LEGENDLOCS:
         raise ValueError(
-            'Invalid `legend_loc`, need to be one of: {}.'.format(VALID_LEGENDLOCS))
+            'Invalid `legend_loc`, needs to be one of: {}.'.format(VALID_LEGENDLOCS))
     if components is None: components = '1,2' if '2d' in projection else '1,2,3'
     if isinstance(components, str): components = components.split(',')
     components = np.array(components).astype(int) - 1
@@ -130,9 +130,16 @@ def scatter(
             raise KeyError('compute coordinates using visualization tool {} first'
                            .format(basis))
     elif x is not None and y is not None:
-        x_arr = adata._get_obs_array(x)
-        y_arr = adata._get_obs_array(y)
-        Y = np.c_[x_arr[:, None], y_arr[:, None]]
+        if x in adata.obs and y in adata.obs:
+            x_arr = adata._get_obs_array(x)
+            y_arr = adata._get_obs_array(y)
+            Y = np.c_[x_arr[:, None], y_arr[:, None]]
+        elif x in adata.var and y in adata.var:
+            x_arr = adata._get_var_array(x)
+            y_arr = adata._get_var_array(y)
+            Y = np.c_[x_arr[:, None], y_arr[:, None]]
+        else:
+            raise ValueError('`x` and `y` variables must both be ins `.obs` or both be in `.var`!')
     else:
         raise ValueError('Either provide a `basis` or `x` and `y`.')
 
